@@ -28,7 +28,6 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DENABLE_CORE=ON \
           -DBUILD_PYTHON=ON \
-          -DENABLE_PYTHON=ON \
           -DPYTHON_EXECUTABLE=$(which python3.10)
 
     - name: Build mGBA and bindings
@@ -40,16 +39,21 @@ jobs:
       run: |
         mkdir -p output/mgba
         cp build/libmgba*.dylib output/ || true
-        cp build/platform/python/_pylib*.so output/mgba/ || true
-        cp -r src/platform/python/mgba/*.py output/mgba/ || true
+
+        # Adjust this path as needed if Python version/macOS changes in future runners
+        cp build/python/lib.macosx-14-arm64-cpython-310/mgba/_pylib*.so output/mgba/ || true
+        cp -r src/platform/python/mgba/* output/mgba/ || true
+
+        echo "Listing output/mgba directory:"
+        ls -l output/mgba || true
+
+        echo "Listing output directory:"
+        ls -l output || true
+
         tar -czvf output/mgba-macos-arm64-python.tar.gz -C output .
 
-    - name: Show output paths
-      run: |
-        echo "Listing output/mgba directory:"
-        ls -lh output/mgba || true
-        echo "Listing output directory:"
-        ls -lh output || true
+        echo "Output tar file path:"
+        echo "$(pwd)/output/mgba-macos-arm64-python.tar.gz"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4

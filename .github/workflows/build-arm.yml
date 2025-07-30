@@ -8,43 +8,54 @@ jobs:
     runs-on: macos-14
 
     steps:
-      - name: Checkout mGBA source
-        uses: actions/checkout@v4
+    - name: Checkout mGBA source
+      uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          brew install cmake qt@5 python@3.10 swig
+    - name: Install dependencies
+      run: |
+        brew install cmake qt@5 python@3.10 swig
 
-      - name: Install Python dependencies
-        run: |
-          python3.10 -m ensurepip
-          python3.10 -m pip install --upgrade pip
-          python3.10 -m pip install cffi
+    - name: Install Python dependencies
+      run: |
+        python3.10 -m ensurepip
+        python3.10 -m pip install --upgrade pip
+        python3.10 -m pip install cffi
 
-      - name: Configure build
-        run: |
-          mkdir build && cd build
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DENABLE_CORE=ON \
-            -DBUILD_PYTHON=ON \
-            -DPYTHON_EXECUTABLE=$(which python3.10)
+    - name: Configure build
+      run: |
+        mkdir build && cd build
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DENABLE_CORE=ON \
+          -DBUILD_PYTHON=ON \
+          -DPYTHON_EXECUTABLE=$(which python3.10)
 
-      - name: Build mGBA and bindings
-        run: |
-          cd build
-          make -j$(sysctl -n hw.ncpu)
+    - name: Build mGBA and bindings
+      run: |
+        cd build
+        make -j$(sysctl -n hw.ncpu)
 
-      - name: Package output
-        run: |
-          mkdir -p output
-          cp build/libmgba*.dylib output/ || true
-          cp build/python/_pylib*.so src/platform/python/mgba/ || true
-          cp -r src/platform/python/mgba output/ || true
-          tar -czvf output/mgba-macos-arm64-python.tar.gz -C output .
+    - name: Package output
+      run: |
+        mkdir -p output/mgba
+        cp build/libmgba*.dylib output/ || true
+        cp build/platform/python/_pylib*.so output/mgba/ || true
+        cp -r build/platform/python/mgba/* output/mgba/ || true
+        tar -czvf output/mgba-macos-arm64-python.tar.gz -C output .
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mgba-macos-arm64-python
-          path: output/mgba-macos-arm64-python.tar.gz
+    - name: Show output paths
+      run: |
+        echo "Listing output/mgba directory:"
+        ls -l output/mgba
+
+        echo "Listing output directory:"
+        ls -l output
+
+        echo "Output tar file path:"
+        echo "$GITHUB_WORKSPACE/output/mgba-macos-arm64-python.tar.gz"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mgba-macos-arm64-python
+        path: output/mgba-macos-arm64-python.tar.gz

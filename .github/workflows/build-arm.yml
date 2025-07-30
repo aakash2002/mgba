@@ -1,0 +1,48 @@
+name: Build mGBA with Python bindings for macOS ARM
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout mGBA source
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        brew install cmake qt@5 python@3.10 swig
+
+    - name: Configure build
+      run: |
+        mkdir build && cd build
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DENABLE_CORE=ON \
+          -DBUILD_PYTHON=ON \
+          -DPYTHON_EXECUTABLE=$(which python3.10)
+
+    - name: Build mGBA
+      run: |
+        cd build
+        make -j$(sysctl -n hw.ncpu)
+
+    - name: Test Python bindings
+      run: |
+        cd build
+        python3.10 -c "import mgba.core; print('mGBA Python bindings loaded successfully')"
+
+    - name: Package output
+      run: |
+        mkdir -p output
+        cp build/libmgba.*.dylib output/ || true
+        cp -r python/ output/ || true
+        tar -czvf mgba-macos-arm64-python.tar.gz -C output .
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: mgba-macos-arm64-python
+        path: mgba-macos-arm64-python.tar.gz

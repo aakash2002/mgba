@@ -38,9 +38,8 @@ jobs:
     - name: Package output
       run: |
         mkdir -p output/mgba
-        cp build/libmgba*.dylib output/ || true
 
-        # Adjust this path as needed if Python version/macOS changes in future runners
+        cp build/libmgba*.dylib output/mgba/ || true
         cp build/python/lib.macosx-14-arm64-cpython-310/mgba/_pylib*.so output/mgba/ || true
         cp -r src/platform/python/mgba/* output/mgba/ || true
 
@@ -50,7 +49,7 @@ jobs:
         echo "Listing output directory:"
         ls -l output || true
 
-        tar -czvf output/mgba-macos-arm64-python.tar.gz -C output .
+        tar -czvf output/mgba-macos-arm64-python.tar.gz -C output mgba
 
         echo "Output tar file path:"
         echo "$(pwd)/output/mgba-macos-arm64-python.tar.gz"

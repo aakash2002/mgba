@@ -43,7 +43,6 @@ jobs:
           cp -r src/platform/python/mgba/* output/mgba/ || true
           tar -czvf output/mgba-macos-arm64-python.tar.gz -C output .
 
-
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:

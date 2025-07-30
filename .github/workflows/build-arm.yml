@@ -8,7 +8,7 @@ jobs:
     runs-on: macos-14
 
     steps:
-    - name: Checkout mGBA source
+    - name: Checkout source
       uses: actions/checkout@v4
 
     - name: Install dependencies
@@ -17,9 +17,9 @@ jobs:
 
     - name: Install Python dependencies
       run: |
+        python3.10 -m ensurepip
         python3.10 -m pip install --upgrade pip
         python3.10 -m pip install cffi
-
 
     - name: Configure build
       run: |
@@ -30,25 +30,36 @@ jobs:
           -DBUILD_PYTHON=ON \
           -DPYTHON_EXECUTABLE=$(which python3.10)
 
-    - name: Build mGBA
+    - name: Build mGBA and Python bindings
       run: |
         cd build
         make -j$(sysctl -n hw.ncpu)
 
+    - name: Debug locate Python bindings
+      run: |
+        echo "Searching for _pylib.abi3.so and core.py..."
+        find . -name "_pylib*.so"
+        find . -name "core.py"
+
+    - name: Show architecture
+      run: |
+        uname -m
+        file $(find . -name "_pylib*.so" | head -n1) || true
+
     - name: Test Python bindings
       run: |
         cd build
-        python3.10 -c "import mgba.core; print('mGBA Python bindings loaded successfully')"
+        PYTHONPATH=../src/platform/python python3.10 -c "import mgba.core; print('Python bindings loaded successfully')"
 
     - name: Package output
       run: |
         mkdir -p output
         cp build/libmgba.*.dylib output/ || true
-        cp -r python/ output/ || true
-        tar -czvf mgba-macos-arm64-python.tar.gz -C output .
+        cp -r ../src/platform/python output/mgba || true
+        tar -czvf output/mgba-macos-arm64-python.tar.gz -C output .
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: mgba-macos-arm64-python
-        path: mgba-macos-arm64-python.tar.gz
+        path: output/mgba-macos-arm64-python.tar.gz

@@ -35,27 +35,25 @@ jobs:
         cd build
         make -j$(sysctl -n hw.ncpu)
 
-    - name: Debug locate Python bindings
-      run: |
-        echo "Searching for _pylib.abi3.so and core.py..."
-        find . -name "_pylib*.so"
-        find . -name "core.py"
-
-    - name: Show architecture
+    - name: Show architecture and locate shared object
       run: |
         uname -m
-        file $(find . -name "_pylib*.so" | head -n1) || true
+        find . -name "_pylib*.so" -exec file {} \;
+
+    - name: Copy shared object to Python module
+      run: |
+        cp build/_pylib*.so src/platform/python/mgba/
 
     - name: Test Python bindings
       run: |
-        cd build
-        PYTHONPATH=../src/platform/python python3.10 -c "import mgba.core; print('Python bindings loaded successfully')"
+        cd src/platform/python
+        python3.10 -c "import mgba.core; print('Python bindings loaded successfully')"
 
     - name: Package output
       run: |
         mkdir -p output
         cp build/libmgba.*.dylib output/ || true
-        cp -r ../src/platform/python output/mgba || true
+        cp -r src/platform/python/mgba output/ || true
         tar -czvf output/mgba-macos-arm64-python.tar.gz -C output .
 
     - name: Upload artifact

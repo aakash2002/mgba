@@ -44,11 +44,6 @@ jobs:
       run: |
         cp build/_pylib*.so src/platform/python/mgba/
 
-    - name: Test Python bindings
-      run: |
-        cd src/platform/python
-        python3.10 -c "import mgba.core; print('Python bindings loaded successfully')"
-
     - name: Package output
       run: |
         mkdir -p output

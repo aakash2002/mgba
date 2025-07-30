@@ -36,12 +36,13 @@ jobs:
         make -j$(sysctl -n hw.ncpu)
 
     - name: Package output
-        run: |
-          mkdir -p output/mgba
-          cp build/libmgba*.dylib output/ || true
-          cp build/python/_pylib*.so output/mgba/ || true
-          cp -r src/platform/python/mgba/* output/mgba/ || true
-          tar -czvf output/mgba-macos-arm64-python.tar.gz -C output .
+      run: |
+        mkdir -p output/mgba
+        cp build/libmgba*.dylib output/ || true
+        cp build/python/_pylib*.so output/mgba/ || true
+        cp -r src/platform/python/mgba/* output/mgba/ || true
+        tar -czvf output/mgba-macos-arm64-python.tar.gz -C output .
+
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
